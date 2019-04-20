@@ -10,6 +10,10 @@ import expressValidator from "express-validator";
 
 // routers
 import authRouter from './routes/auth';
+import questionRouter from './routes/question';
+import answerRouter from './routes/answer'
+import passport from 'passport';
+
 
 const app = express();
 
@@ -27,10 +31,13 @@ app.use(
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, "../public")));
 app.use(expressValidator());
+app.use(passport.initialize())
 
 //routes
 app.get('/', (req, res) => res.send('Welcome to APOE4 API!'));
 app.use('/api/v1/auth', authRouter);
+app.use('/api/v1/questions', questionRouter);
+app.use('/api/v1/answers', answerRouter);
 
 // Handle favicon requests from browsers
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
@@ -43,9 +50,7 @@ app.use('*', (req, res, next) => {
 
 // Error handlers
 app.use((err, req, res, next) => {
-    console.log(config);
-    if ('development' != `${config.env}`) {
-        console.log("Entered here");
+    if ('development' != config.env) {
         return next(err);
     }
 
@@ -68,7 +73,7 @@ app.use((err, req, res, next) => {
     return res.json(errorDetails);
 });
 
-app.use((err, req, res) => {
+app.use((err, req, res, next) => {
     if (!err.isOperational) {
         console.log(
             'An unexpected error occurred please restart the application!',
